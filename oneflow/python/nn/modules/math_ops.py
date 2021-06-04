@@ -272,7 +272,7 @@ class Variance(Module):
     def forward(self, input):
         axis = _check_axis(self.dim, input.shape)
         if isinstance(axis, list) and len(axis) == 0:
-            return flow.experimental.zeros(size=input.shape)
+            return flow.experimental.zeros_like(input)
         else:
             return flow.experimental.sub(
                 flow.experimental.mean(

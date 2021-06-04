@@ -56,6 +56,8 @@ def _test_variance_backward(test_case, shape, device):
     z = y.sum()
     z.backward()
     np_grad = 2 * (np_arr - np_arr.mean()) / (np_arr.size)
+    print("of_grad >>>>>>>>>>>>>>>> \n", x.grad.numpy())
+    print("np_grad >>>>>>>>>>>>>>>> \n", np_grad)
     test_case.assertTrue(np.allclose(x.grad.numpy(), np_grad, 1e-5, 1e-5))
 
 
@@ -69,10 +71,10 @@ class TestVariance(flow.unittest.TestCase):
         arg_dict["test_fun"] = [
             _test_variance,
             _test_variance_keepdim,
-            # _test_variance_backward # TODO:(zhaoluyang):output grad not equal to numpy grad
+            _test_variance_backward,  # TODO:(zhaoluyang):output grad not equal to numpy grad
         ]
         arg_dict["shape"] = [(2, 3), (2, 3, 4), (2, 3, 4, 5)]
-        arg_dict["device"] = ["cpu", "cuda"]
+        arg_dict["device"] = ["cuda", "cpu"]
         for arg in GenArgList(arg_dict):
             arg[0](test_case, *arg[1:])
 
