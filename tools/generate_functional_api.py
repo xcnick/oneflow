@@ -65,6 +65,7 @@ header_fmt = (
 #include "oneflow/core/framework/tensor.h"
 #include "oneflow/core/framework/tensor_tuple.h"
 #include "oneflow/core/functional/scalar.h"
+#include "oneflow/core/functional/tensor_index.h"
 
 namespace oneflow {{
 namespace one {{
@@ -147,6 +148,7 @@ types_allowed = {
     "BoolList",
     "DataType",
     "Shape",
+    "TensorIndex",
 }
 
 generic_type_aliases = {
@@ -173,6 +175,7 @@ argument_type_aliases = {
     "BoolList": "const std::vector<bool>&",
     "DataType": "const DataType&",
     "Shape": "const Shape&",
+    "TensorIndex": "const TensorIndex&",
     **generic_type_aliases,
 }
 
@@ -191,6 +194,7 @@ optional_argument_type_aliases = {
     "BoolList": "const Optional<std::vector<bool>>&",
     "DataType": "const Optional<DataType>&",
     "Shape": "const Optional<Shape>&",
+    "TensorIndex": "const Optional<TensorIndex>&",
     **{k: "const Optional<{0}>".format(v) for k, v in generic_type_aliases.items()},
 }
 
