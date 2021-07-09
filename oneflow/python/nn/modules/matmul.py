@@ -26,6 +26,7 @@ class MatMul(Module):
         super().__init__()
 
     def forward(self, a, b):
+        flow.profiler.range_push("matmul forward")
         assert len(a.shape) >= 2, "Tensor a's dim should >=2"
         assert len(b.shape) >= 2, "Tensor b's dim should >=2"
 
@@ -41,6 +42,7 @@ class MatMul(Module):
             ), "Not support number of dimensions of a being less than number of dimensions of b!"
             res = flow.F.broadcast_matmul(a, b)
 
+        flow.profiler.range_pop()
         return res
 
 

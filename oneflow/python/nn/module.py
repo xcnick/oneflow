@@ -84,7 +84,6 @@ class Module(object):
                 args = result
 
         res = self.forward(*args)
-
         return res
 
     def add_module(self, name: str, module: Optional["Module"]) -> None:
