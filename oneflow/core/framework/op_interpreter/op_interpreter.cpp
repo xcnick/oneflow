@@ -36,10 +36,10 @@ namespace oneflow {
 namespace one {
 
 Maybe<void> LazyInterpreter::Apply(const OpExpr& op_expr, const TensorTuple& inputs,
-                                   TensorTuple* outputs, const AttrMap& attrs) const {
+                                   TensorTuple* outputs, const OpExprInterpContext& ctx) const {
 #define APPLY_IF(op_type)                                              \
   if (const auto* op = dynamic_cast<const op_type##Expr*>(&op_expr)) { \
-    return ApplyImpl(*op, inputs, outputs, attrs);                     \
+    return ApplyImpl(*op, inputs, outputs, ctx);                       \
   }
 
   APPLY_IF(FunctionOp);
@@ -51,10 +51,10 @@ Maybe<void> LazyInterpreter::Apply(const OpExpr& op_expr, const TensorTuple& inp
 }
 
 Maybe<void> LazyInterpreter::ApplyImpl(const BuiltinOpExpr& op_expr, const TensorTuple& inputs,
-                                       TensorTuple* outputs, const AttrMap& attrs) const {
+                                       TensorTuple* outputs, const OpExprInterpContext& ctx) const {
   CHECK_EQ_OR_RETURN(inputs.size(), op_expr.input_size());
   const auto& scope = JUST(GetCurrentScope());
-  auto op_conf = JUST(OpInterpUtil::GenBuiltinOpConf(op_expr, attrs));
+  auto op_conf = JUST(OpInterpUtil::GenBuiltinOpConf(op_expr, ctx.attrs));
   int64_t symbol_id = JUST(scope->symbol_id());
   op_conf->set_scope_symbol_id(symbol_id);
   if (!op_conf->has_device_tag()) {
@@ -95,17 +95,17 @@ Maybe<void> LazyInterpreter::ApplyImpl(const BuiltinOpExpr& op_expr, const Tenso
 }
 
 Maybe<void> LazyInterpreter::ApplyImpl(const FunctionOpExpr& op_expr, const TensorTuple& inputs,
-                                       TensorTuple* outputs, const AttrMap& attrs) const {
+                                       TensorTuple* outputs, const OpExprInterpContext& ctx) const {
   // TODO(hjchen2)
   UNIMPLEMENTED();
   return Maybe<void>::Ok();
 }
 
 Maybe<void> EagerInterpreter::Apply(const OpExpr& op_expr, const TensorTuple& inputs,
-                                    TensorTuple* outputs, const AttrMap& attrs) const {
+                                    TensorTuple* outputs, const OpExprInterpContext& ctx) const {
 #define APPLY_IF(op_type)                                              \
   if (const auto* op = dynamic_cast<const op_type##Expr*>(&op_expr)) { \
-    return ApplyImpl(*op, inputs, outputs, attrs);                     \
+    return ApplyImpl(*op, inputs, outputs, ctx);                       \
   }
 
   APPLY_IF(UserOp);
@@ -124,7 +124,8 @@ Maybe<void> EagerInterpreter::Apply(const OpExpr& op_expr, const TensorTuple& in
 }
 
 Maybe<void> EagerInterpreter::ApplyImpl(const FunctionOpExpr& op_expr, const TensorTuple& inputs,
-                                        TensorTuple* outputs, const AttrMap& attrs) const {
+                                        TensorTuple* outputs,
+                                        const OpExprInterpContext& ctx) const {
   // TODO(hjchen2)
   UNIMPLEMENTED();
   return Maybe<void>::Ok();
@@ -146,7 +147,7 @@ Maybe<void> DetermineRequiresGrad(TensorTuple* outputs, const bool& requires_gra
 }  // namespace
 
 Maybe<void> AutogradInterpreter::Apply(const OpExpr& op_expr, const TensorTuple& inputs,
-                                       TensorTuple* outputs, const AttrMap& attrs) const {
+                                       TensorTuple* outputs, const OpExprInterpContext& ctx) const {
   OF_PROFILER_RANGE_PUSH("AutogradInterpreter::Apply");
   bool requires_grad = false;
   if (autograd::GradMode::is_enabled() && !JUST(op_expr.IsGradDisabled())) {
@@ -157,7 +158,7 @@ Maybe<void> AutogradInterpreter::Apply(const OpExpr& op_expr, const TensorTuple&
   {
     autograd::AutoGradMode mode(false);
     OF_PROFILER_RANGE_PUSH("internal_->Apply");
-    JUST(internal_->Apply(op_expr, inputs, outputs, attrs));
+    JUST(internal_->Apply(op_expr, inputs, outputs, ctx));
     OF_PROFILER_RANGE_POP();
     JUST(DetermineIsLeaf(outputs, inputs.size() == 0, requires_grad));
     JUST(DetermineRequiresGrad(outputs, requires_grad));
@@ -165,7 +166,7 @@ Maybe<void> AutogradInterpreter::Apply(const OpExpr& op_expr, const TensorTuple&
   if (requires_grad) {
     OF_PROFILER_RANGE_PUSH("Capture");
     const auto& grad_closure = JUST(op_expr.GetOrCreateOpGradClosure());
-    JUST(grad_closure->Capture(inputs, *outputs, attrs));
+    JUST(grad_closure->Capture(inputs, *outputs, ctx.attrs));
     OF_PROFILER_RANGE_POP();
 
     OF_PROFILER_RANGE_PUSH("AddBackwardFuncPtr");
