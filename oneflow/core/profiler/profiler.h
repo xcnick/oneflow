@@ -30,6 +30,9 @@ void RangePush(const std::string& name);
 
 void RangePop();
 
+void DisableProfile();
+void EnableProfile();
+
 void LogHostMemoryUsage(const std::string& name);
 
 class RangeGuardCtx;

@@ -40,12 +40,18 @@ class Function:
         self.handle = handle
 
     def __call__(self, *args, **kwargs):
+        flow.profiler.range_push("Function __call__")
+        flow.profiler.range_push("recursive determine")
         args = list(args)
         for i in range(len(args)):
             args[i] = RecursveDetermine(args[i])
         for k, v in kwargs.items():
             kwargs[k] = RecursveDetermine(v)
-        return self.handle(*args, **kwargs)
+        flow.profiler.range_pop()
+
+        res = self.handle(*args, **kwargs)
+        flow.profiler.range_pop()
+        return res
 
 
 def RegisterFunctionalApis():

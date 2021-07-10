@@ -27,3 +27,13 @@ def RangePush(range_name):
 @oneflow_export("profiler.range_pop")
 def RangePop():
     oneflow._oneflow_internal.profiler.RangePop()
+
+
+@oneflow_export("profiler.enable_profile")
+def EnableProfile():
+    oneflow._oneflow_internal.profiler.enable_profile()
+
+
+@oneflow_export("profiler.disable_profile")
+def DisableProfile():
+    oneflow._oneflow_internal.profiler.disable_profile()

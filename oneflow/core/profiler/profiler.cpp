@@ -25,6 +25,8 @@ namespace oneflow {
 
 namespace profiler {
 
+static bool oneflow_profile_enabled = true;
+
 namespace {
 
 bool CaseInsensitiveStringEquals(const std::string& lhs, const std::string& rhs) {
@@ -54,15 +56,19 @@ void NameThisHostThread(const std::string& name) {
 
 void RangePush(const std::string& name) {
 #ifdef OF_ENABLE_PROFILER
-  nvtxRangePushA(name.c_str());
+  if (oneflow_profile_enabled) { nvtxRangePushA(name.c_str()); }
 #endif  // OF_ENABLE_PROFILER
 }
 
 void RangePop() {
 #ifdef OF_ENABLE_PROFILER
-  nvtxRangePop();
+  if (oneflow_profile_enabled) { nvtxRangePop(); }
 #endif  // OF_ENABLE_PROFILER
 }
+
+void DisableProfile() { oneflow_profile_enabled = false; }
+
+void EnableProfile() { oneflow_profile_enabled = true; }
 
 #ifdef OF_ENABLE_PROFILER
 

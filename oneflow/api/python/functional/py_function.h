@@ -51,7 +51,9 @@ inline py::object PyFunction(py::args args, py::kwargs kwargs) {
   }
   using FType = typename SchemaT::FType;
   using R = typename SchemaT::R;
+  OF_PROFILER_RANGE_PUSH("unpack_call");
   auto result = py::cast(detail::unpack_call<FType, R>::apply(*SchemaT::func, _args));
+  OF_PROFILER_RANGE_POP();
   OF_PROFILER_RANGE_POP();
   return result;
 }
